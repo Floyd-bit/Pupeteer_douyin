@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "puppeteer-core": "^13.6.0",
+    "ws": "^8.11.0"
+  }
+}
