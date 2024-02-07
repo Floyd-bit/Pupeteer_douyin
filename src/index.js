@@ -4,7 +4,7 @@
  * @Autor:
  * @Date: 2022-12-04 00:31:30
  * @LastEditors: 赵卓轩
- * @LastEditTime: 2024-02-05 20:09:43
+ * @LastEditTime: 2024-02-07 20:19:46
  */
 "use strict";
 
@@ -14,24 +14,36 @@ const { event } = require("./websocket.js");
 (async function () {
   const browser = await createBrowser();
   const page = await browser.newPage();
-  const requestList = ["https://mcs.zijieapi.com/list"];
+  const requestList = ["https://mcs.zijieapi.com/list", "https://mssdk.bytedance.com/web/common"];
+  // const requestList = ["https://mssdk.bytedance.com/web/common"];
   let qrcodeTimer;
   let currentQrCode;
   await page.goto("https://eos.douyin.com/");
   console.log("页面加载成功");
 
 
-  await page.setRequestInterception(true);
-  page.on('request', request => {
-      if(requestList.includes(request.url())) {
-        console.log(request);
+  async function listenRequest() {
+    await page.setRequestInterception(true);
+    page.on('request', request => {
+        if(requestList.find(url => request.url().includes(url))) {
+          console.log(request);
+        }
+        request.continue();
+    });
+    page.on('response', response => {
+      if(requestList.find(url => response.url().includes(url))) {
+        console.log(response);
       }
-      request.continue();
-  });
-  page.on('response', response => {
-    if(requestList.includes(response.url())) {
-      console.log(response);
-    }
+    });
+  }
+
+  page.on("framenavigated", frame => {
+    const url = frame.url(); // the new url
+    if(url.includes("livesite/live")) {
+      clearInterval(qrcodeTimer);
+      console.log("扫码成功");
+      listenRequest();
+    }  
   });
 
   await page.on("console", (msg) => {
