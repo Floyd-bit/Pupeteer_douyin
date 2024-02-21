@@ -4,24 +4,16 @@
  * @Autor:
  * @Date: 2022-12-04 00:31:30
  * @LastEditors: 赵卓轩
- * @LastEditTime: 2024-02-07 20:19:46
+ * @LastEditTime: 2024-02-20 22:25:49
  */
 "use strict";
 
 const { createBrowser } = require("./utils/browser.js");
 const { event } = require("./websocket.js");
 
-(async function () {
-  const browser = await createBrowser();
-  const page = await browser.newPage();
-  const requestList = ["https://mcs.zijieapi.com/list", "https://mssdk.bytedance.com/web/common"];
-  // const requestList = ["https://mssdk.bytedance.com/web/common"];
+async function excute(page, requestList) {
   let qrcodeTimer;
   let currentQrCode;
-  await page.goto("https://eos.douyin.com/");
-  console.log("页面加载成功");
-
-
   async function listenRequest() {
     await page.setRequestInterception(true);
     page.on('request', request => {
@@ -77,5 +69,19 @@ const { event } = require("./websocket.js");
     }
   }, 2000);
 
+}
 
+(async function () {
+  const browser = await createBrowser();
+  const requestList = ["https://mcs.zijieapi.com/list", "https://mssdk.bytedance.com/web/common"];
+  // const requestList = ["https://mssdk.bytedance.com/web/common"];
+  for(let i=0; i<2; i++) {
+    const context = await browser.createBrowserContext();
+    const newPage = await context.newPage();
+    await newPage.goto('https://eos.douyin.com/');
+    console.log(`页面${i}加载成功`);
+    excute(newPage, requestList);
+  }
+  // Dispose context once it's no longer needed.
+  // await context.close();  
 })();
